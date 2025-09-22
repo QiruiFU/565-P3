@@ -146,11 +146,21 @@ __global__ void generateRayFromCamera(Camera cam, int iter, int traceDepth, Path
 
         segment.ray.origin = cam.position;
         segment.color = glm::vec3(1.0f, 1.0f, 1.0f);
+        
+        thrust::default_random_engine rng = makeSeededRandomEngine(iter, index, traceDepth);
+        thrust::uniform_real_distribution<float> u01(0.0f, 1.0f);
+
+        float randX = 0.0f, randY = 0.0f;
+
+        #ifdef ANTI_ALIAS
+        randX = u01(rng) - 0.5f;
+        randY = u01(rng) - 0.5f;
+        #endif
 
         // TODO: implement antialiasing by jittering the ray
         segment.ray.direction = glm::normalize(cam.view
-            - cam.right * cam.pixelLength.x * ((float)x - (float)cam.resolution.x * 0.5f)
-            - cam.up * cam.pixelLength.y * ((float)y - (float)cam.resolution.y * 0.5f)
+            - cam.right * cam.pixelLength.x * ((float)x - (float)cam.resolution.x * 0.5f + randX)
+            - cam.up * cam.pixelLength.y * ((float)y - (float)cam.resolution.y * 0.5f + randY)
         );
 
         segment.pixelIndex = index;
@@ -261,17 +271,14 @@ __global__ void shadeFakeMaterial(
 
             // If the material indicates that the object was a light, "light" the ray
             if (material.emittance > 0.0f) {
-                pathSegments[idx].color *= (materialColor * material.emittance) * glm::dot(glm::normalize(-pathSegments[idx].ray.direction), intersection.surfaceNormal);
+                pathSegments[idx].color *= (materialColor * material.emittance) * glm::dot(glm::normalize(-pathSegments[idx].ray.direction), glm::normalize(intersection.surfaceNormal));
                 pathSegments[idx].remainingBounces = 0;
             }
             // Otherwise, do some pseudo-lighting computation. This is actually more
             // like what you would expect from shading in a rasterizer like OpenGL.
             // TODO: replace this! you should be able to start with basically a one-liner
             else {
-                // float lightTerm = glm::dot(intersection.surfaceNormal, glm::vec3(0.0f, 1.0f, 0.0f));
-                // pathSegments[idx].color *= (materialColor * lightTerm) * 0.3f + ((1.0f - intersection.t * 0.02f) * materialColor) * 0.7f;
-                // pathSegments[idx].color *= u01(rng); // apply some noise because why not
-                glm::vec3 inter_pos = pathSegments[idx].ray.origin + intersection.t * pathSegments[idx].ray.direction;
+                glm::vec3 inter_pos = getPointOnRay(pathSegments[idx].ray, intersection.t);
                 scatterRay(pathSegments[idx], inter_pos, intersection.surfaceNormal, material, rng);
                 pathSegments[idx].remainingBounces--;
             }
@@ -307,6 +314,15 @@ struct deadLight
         return (p.remainingBounces > 0);
     }
 };
+
+struct sortMaterial
+{
+    __host__ __device__
+    bool operator()(const ShadeableIntersection &a, const ShadeableIntersection &b) const {
+        return a.materialId < b.materialId;
+    }
+};
+
 
 
 /**
@@ -397,7 +413,9 @@ void pathtrace(uchar4* pbo, int frame, int iter)
         // materials you have in the scenefile.
         // TODO: compare between directly shading the path segments and shading
         // path segments that have been reshuffled to be contiguous in memory.
-
+// #ifndef SORT_MATERIAL_ID
+        thrust::sort_by_key(thrust::device, dev_intersections, dev_intersections + num_paths, dev_paths, sortMaterial());
+// #endif
         shadeFakeMaterial<<<numblocksPathSegmentTracing, blockSize1d>>>(
             iter,
             num_paths,
@@ -415,6 +433,7 @@ void pathtrace(uchar4* pbo, int frame, int iter)
 
         num_paths = new_end - dev_paths;
         iterationComplete = (num_paths == 0);
+        // iterationComplete = (depth == traceDepth);
 
         if (guiData != NULL)
         {

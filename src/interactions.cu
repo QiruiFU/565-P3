@@ -56,6 +56,7 @@ __host__ __device__ void scatterRay(
     // calculateRandomDirectionInHemisphere defined above.
     pathSegment.ray.origin = intersect;
     glm::vec3 direct;
+    normal = glm::normalize(normal);
     if(m.hasReflective > 0.0){
         pathSegment.color *= m.color * glm::dot(glm::normalize(-pathSegment.ray.direction), normal);
         direct = glm::reflect(pathSegment.ray.direction, normal);
