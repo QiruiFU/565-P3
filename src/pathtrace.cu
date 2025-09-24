@@ -280,7 +280,24 @@ __global__ void shadeFakeMaterial(
             else {
                 glm::vec3 inter_pos = getPointOnRay(pathSegments[idx].ray, intersection.t);
                 scatterRay(pathSegments[idx], inter_pos, intersection.surfaceNormal, material, rng);
+
+            #ifdef ROULETTE
+                float russian = u01(rng);
+                if(russian > ROULETTE){
+                    pathSegments[idx].remainingBounces = 0;
+                }
+                else{
+                    pathSegments[idx].color /= ROULETTE;
+                    pathSegments[idx].remainingBounces--;
+                }
+            #else
                 pathSegments[idx].remainingBounces--;
+            #endif
+
+
+                if(pathSegments[idx].remainingBounces == 0){
+                    pathSegments[idx].color = glm::vec3(0.0f, 0.0f, 0.0f);
+                }
             }
             // If there was no intersection, color the ray black.
             // Lots of renderers use 4 channel color, RGBA, where A = alpha, often
@@ -413,9 +430,8 @@ void pathtrace(uchar4* pbo, int frame, int iter)
         // materials you have in the scenefile.
         // TODO: compare between directly shading the path segments and shading
         // path segments that have been reshuffled to be contiguous in memory.
-// #ifndef SORT_MATERIAL_ID
-        thrust::sort_by_key(thrust::device, dev_intersections, dev_intersections + num_paths, dev_paths, sortMaterial());
-// #endif
+
+
         shadeFakeMaterial<<<numblocksPathSegmentTracing, blockSize1d>>>(
             iter,
             num_paths,
@@ -433,7 +449,10 @@ void pathtrace(uchar4* pbo, int frame, int iter)
 
         num_paths = new_end - dev_paths;
         iterationComplete = (num_paths == 0);
-        // iterationComplete = (depth == traceDepth);
+
+        if(iterationComplete){
+            thrust::sort_by_key(thrust::device, dev_intersections, dev_intersections + num_paths, dev_paths, sortMaterial());
+        }
 
         if (guiData != NULL)
         {
