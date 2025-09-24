@@ -10,9 +10,27 @@ __host__ __device__ glm::vec3 calculateRandomDirectionInHemisphere(
 {
     thrust::uniform_real_distribution<float> u01(0, 1);
 
-    float up = sqrt(u01(rng)); // cos(theta)
-    float over = sqrt(1 - up * up); // sin(theta)
-    float around = u01(rng) * TWO_PI;
+    #ifdef COS_HEMISPHERE
+    
+    float t = u01(rng);
+    float u = u01(rng) * TWO_PI;
+    float v = sqrt(1.f - t);
+
+    float px = v * cos(u);
+    float py = sqrt(t);
+    float pz = v * sin(u);
+
+    #else
+
+    float t = u01(rng);
+    float u = u01(rng) * TWO_PI;
+    float v = sqrt(1.f - t * t);
+
+    float px = v * cos(u);
+    float py = t;
+    float pz = v * sin(u);
+
+    #endif
 
     // Find a direction that is not the normal based off of whether or not the
     // normal's components are all equal to sqrt(1/3) or whether or not at
@@ -39,9 +57,9 @@ __host__ __device__ glm::vec3 calculateRandomDirectionInHemisphere(
     glm::vec3 perpendicularDirection2 =
         glm::normalize(glm::cross(normal, perpendicularDirection1));
 
-    return up * normal
-        + cos(around) * over * perpendicularDirection1
-        + sin(around) * over * perpendicularDirection2;
+    return py * normal
+        + px * perpendicularDirection1
+        + pz * perpendicularDirection2;
 }
 
 __host__ __device__ void scatterRay(
@@ -62,7 +80,12 @@ __host__ __device__ void scatterRay(
         direct = glm::reflect(pathSegment.ray.direction, normal);
     }
     else{
+        #ifdef COS_HEMISPHERE
+        pathSegment.color *= m.color;
+        #else
         pathSegment.color *= m.color * glm::dot(glm::normalize(-pathSegment.ray.direction), normal);
+        #endif
+
         direct = calculateRandomDirectionInHemisphere(normal, rng);
     }
     pathSegment.ray.direction = glm::normalize(direct);
