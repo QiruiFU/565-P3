@@ -1,4 +1,5 @@
 #include "intersections.h"
+#include <glm/gtx/intersect.hpp>
 
 __host__ __device__ float boxIntersectionTest(
     Geom box,
@@ -110,4 +111,41 @@ __host__ __device__ float sphereIntersectionTest(
     }
 
     return glm::length(r.origin - intersectionPoint);
+}
+
+__host__ __device__ float triIntersectionTest(
+    Geom triangle,
+    Ray r,
+    glm::vec3 &intersectionPoint,
+    glm::vec3 &normal,
+    bool &outside)
+{
+    glm::vec3 ro = multiplyMV(triangle.inverseTransform, glm::vec4(r.origin, 1.0f));
+    glm::vec3 rd = glm::normalize(multiplyMV(triangle.inverseTransform, glm::vec4(r.direction, 0.0f)));
+
+    Ray rt;
+    rt.origin = ro;
+    rt.direction = rd;
+
+    glm::vec3 bary;
+    bool inter_valid = glm::intersectRayTriangle(ro, rd,
+                                    triangle.vertices[0],
+                                    triangle.vertices[1],
+                                    triangle.vertices[2],
+                                    bary);
+    
+    float t = bary.z;
+
+    if (inter_valid)
+    {
+        intersectionPoint = getPointOnRay(rt, t);
+        glm::vec3 e1 = triangle.vertices[1] - triangle.vertices[0];
+        glm::vec3 e2 = triangle.vertices[2] - triangle.vertices[0];
+        normal = glm::normalize(glm::cross(e1, e2));
+        outside = glm::dot(r.direction, normal) < 0.0f;
+        return t;
+    }
+    else{
+        return -1.0;
+    }
 }

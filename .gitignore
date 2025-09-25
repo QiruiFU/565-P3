@@ -559,3 +559,4 @@ xcuserdata
 *.xcuserstate
 imgui.ini
 .vscode
+geometry/

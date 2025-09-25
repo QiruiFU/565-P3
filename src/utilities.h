@@ -16,8 +16,8 @@
 #define EPSILON           0.00001f
 
 #define ANTI_ALIAS
-// #define ROULETTE 0.8f
-// #define COS_HEMISPHERE
+#define ROULETTE 0.8f
+#define COS_HEMISPHERE
 
 class GuiDataContainer
 {
