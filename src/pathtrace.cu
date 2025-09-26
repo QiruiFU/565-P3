@@ -81,6 +81,7 @@ static Geom* dev_geoms = NULL;
 static Material* dev_materials = NULL;
 static PathSegment* dev_paths = NULL;
 static ShadeableIntersection* dev_intersections = NULL;
+static BVHNode* dev_bvh = NULL;
 // TODO: static variables for device memory, any extra info you need, etc
 // ...
 
@@ -110,6 +111,9 @@ void pathtraceInit(Scene* scene)
     cudaMalloc(&dev_intersections, pixelcount * sizeof(ShadeableIntersection));
     cudaMemset(dev_intersections, 0, pixelcount * sizeof(ShadeableIntersection));
 
+    cudaMalloc(&dev_bvh, scene->bvh.size() * sizeof(BVHNode));
+    cudaMemcpy(dev_bvh, scene->bvh.data(), scene->bvh.size() * sizeof(BVHNode), cudaMemcpyHostToDevice);
+
     // TODO: initialize any extra device memeory you need
 
     checkCUDAError("pathtraceInit");
@@ -122,6 +126,7 @@ void pathtraceFree()
     cudaFree(dev_geoms);
     cudaFree(dev_materials);
     cudaFree(dev_intersections);
+    cudaFree(dev_bvh);
     // TODO: clean up any extra device memory you created
 
     checkCUDAError("pathtraceFree");
@@ -177,6 +182,7 @@ __global__ void computeIntersections(
     int num_paths,
     PathSegment* pathSegments,
     Geom* geoms,
+    BVHNode* bvh,
     int geoms_size,
     ShadeableIntersection* intersections)
 {
@@ -198,6 +204,91 @@ __global__ void computeIntersections(
 
         // naive parse through global geoms
 
+        #ifdef BVH_NUM
+        // int node_idx = bvh[0].rightNode;
+        // for (int i = bvh[node_idx].geo_st; i < bvh[node_idx].geo_ed; i++)
+        // {
+        //     Geom& geom = geoms[i];
+
+        //     if (geom.type == CUBE)
+        //     {
+        //         t = boxIntersectionTest(geom, pathSegment.ray, tmp_intersect, tmp_normal, outside);
+        //     }
+        //     else if (geom.type == SPHERE)
+        //     {
+        //         t = sphereIntersectionTest(geom, pathSegment.ray, tmp_intersect, tmp_normal, outside);
+        //     }
+        //     else if(geom.type == TRIANGLE){
+        //         t = triIntersectionTest(geom, pathSegment.ray, tmp_intersect, tmp_normal, outside);
+        //     }
+        //     if (t > 0.0f && t_min > t)
+        //     {
+        //         t_min = t;
+        //         hit_geom_index = i;
+        //         intersect_point = tmp_intersect;
+        //         normal = tmp_normal;
+        //     }
+        // }
+
+        int stack[20];
+        stack[0] = 0;
+        int top = 0;
+
+        while(top >= 0){
+            int cur_node = stack[top--];
+
+            // if(path_index == 0) {
+            //     printf("%f, %f, %f\n", bvh[cur_node].maxCorner[0], bvh[cur_node].maxCorner[1], bvh[cur_node].maxCorner[2]);
+            //     printf("%f, %f, %f\n", bvh[cur_node].minCorner[0], bvh[cur_node].minCorner[1], bvh[cur_node].minCorner[2]);
+            //     printf("%f, %f, %f\n", pathSegment.ray.direction[0], pathSegment.ray.direction[1], pathSegment.ray.direction[2]);
+            //     printf("%f, %f, %f\n\n", pathSegment.ray.origin[0], pathSegment.ray.origin[1], pathSegment.ray.origin[2]);
+            // }
+
+            if(BVHIntersectionTest(bvh[cur_node], pathSegment.ray)) {
+                // if(path_index == 0)
+                // {
+
+                // printf("fuck!!!\n");
+                // }
+                if(bvh[cur_node].isLeaf){
+                    for (int i = bvh[cur_node].geo_st; i < bvh[cur_node].geo_ed; i++) {
+                        Geom& geom = geoms[i];
+
+                        if (geom.type == CUBE)
+                        {
+                            t = boxIntersectionTest(geom, pathSegment.ray, tmp_intersect, tmp_normal, outside);
+                        }
+                        else if (geom.type == SPHERE)
+                        {
+                            t = sphereIntersectionTest(geom, pathSegment.ray, tmp_intersect, tmp_normal, outside);
+                        }
+                        else if(geom.type == TRIANGLE){
+                            t = triIntersectionTest(geom, pathSegment.ray, tmp_intersect, tmp_normal, outside);
+                        }
+                        if (t > 0.0f && t_min > t)
+                        {
+                            t_min = t;
+                            hit_geom_index = i;
+                            intersect_point = tmp_intersect;
+                            normal = tmp_normal;
+                        }
+                    }
+                }
+                else{
+                    stack[++top] = bvh[cur_node].rightNode;
+                    stack[++top] = bvh[cur_node].leftNode;
+                }
+            }
+            // else{
+            //     if(path_index == 0){
+
+            //     printf("fuck no !!!\n");
+            //     }
+            // }
+        }
+
+        #else
+
         for (int i = 0; i < geoms_size; i++)
         {
             Geom& geom = geoms[i];
@@ -213,10 +304,6 @@ __global__ void computeIntersections(
             else if(geom.type == TRIANGLE){
                 t = triIntersectionTest(geom, pathSegment.ray, tmp_intersect, tmp_normal, outside);
             }
-            // TODO: add more intersection tests here... triangle? metaball? CSG?
-
-            // Compute the minimum t from the intersection tests to determine what
-            // scene geometry object was hit first.
             if (t > 0.0f && t_min > t)
             {
                 t_min = t;
@@ -225,6 +312,7 @@ __global__ void computeIntersections(
                 normal = tmp_normal;
             }
         }
+        #endif
 
         if (hit_geom_index == -1)
         {
@@ -237,6 +325,7 @@ __global__ void computeIntersections(
             intersections[path_index].materialId = geoms[hit_geom_index].materialid;
             intersections[path_index].surfaceNormal = normal;
         }
+
     }
 }
 
@@ -397,6 +486,7 @@ void pathtrace(uchar4* pbo, int frame, int iter)
 
     generateRayFromCamera<<<blocksPerGrid2d, blockSize2d>>>(cam, iter, traceDepth, dev_paths);
     checkCUDAError("generate camera ray");
+    cudaDeviceSynchronize();
 
     int depth = 0;
     PathSegment* dev_path_end = dev_paths + pixelcount;
@@ -418,6 +508,7 @@ void pathtrace(uchar4* pbo, int frame, int iter)
             num_paths,
             dev_paths,
             dev_geoms,
+            dev_bvh,
             hst_scene->geoms.size(),
             dev_intersections
         );
@@ -442,6 +533,7 @@ void pathtrace(uchar4* pbo, int frame, int iter)
             dev_paths,
             dev_materials
         );
+        checkCUDAError("shading");
         cudaDeviceSynchronize();
 
         PathSegment *new_end = thrust::partition(
@@ -453,9 +545,9 @@ void pathtrace(uchar4* pbo, int frame, int iter)
         num_paths = new_end - dev_paths;
         iterationComplete = (num_paths == 0);
 
-        if(iterationComplete){
-            thrust::sort_by_key(thrust::device, dev_intersections, dev_intersections + num_paths, dev_paths, sortMaterial());
-        }
+        #ifdef SORT_MATERIAL
+        thrust::sort_by_key(thrust::device, dev_intersections, dev_intersections + num_paths, dev_paths, sortMaterial());
+        #endif
 
         if (guiData != NULL)
         {

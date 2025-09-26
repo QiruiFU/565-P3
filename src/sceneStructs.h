@@ -3,6 +3,7 @@
 #include <cuda_runtime.h>
 
 #include "glm/glm.hpp"
+#include "utilities.h"
 
 #include <string>
 #include <vector>
@@ -95,4 +96,16 @@ struct ShadeableIntersection
   float t;
   glm::vec3 surfaceNormal;
   int materialId;
+};
+
+
+struct BVHNode
+{
+    bool isLeaf;
+    int leftNode;
+    int rightNode;
+    glm::vec3 minCorner;
+    glm::vec3 maxCorner;
+    int geo_st;
+    int geo_ed;
 };

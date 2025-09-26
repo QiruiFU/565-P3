@@ -15,9 +15,11 @@
 #define SQRT_OF_ONE_THIRD 0.5773502691896257645091487805019574556476f
 #define EPSILON           0.00001f
 
+// #define SORT_MATERIAL
 #define ANTI_ALIAS
-#define ROULETTE 0.8f
+#define ROULETTE 0.9f
 #define COS_HEMISPHERE
+#define BVH_NUM 5 
 
 class GuiDataContainer
 {

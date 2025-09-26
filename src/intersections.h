@@ -78,3 +78,7 @@ __host__ __device__ float triIntersectionTest(
     glm::vec3& intersectionPoint,
     glm::vec3& normal,
     bool& outside);
+
+__host__ __device__ bool BVHIntersectionTest(
+    BVHNode bvh,
+    Ray r);

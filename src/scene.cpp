@@ -17,6 +17,119 @@
 using namespace std;
 using json = nlohmann::json;
 
+glm::vec3 compute_center(const Geom &geom) {
+    if (geom.type == CUBE || geom.type == SPHERE) {
+        return glm::vec3(geom.transform * glm::vec4(0.f, 0.f, 0.f, 1.0f));
+    }
+    else if(geom.type == TRIANGLE) {
+        return (geom.vertices[0] + geom.vertices[1] + geom.vertices[2]) / 3.0f;
+    }
+
+    return glm::vec3(0.f);
+}
+
+void compute_box(const Geom &geom, glm::vec3 &minAABB, glm::vec3 &maxAABB) {
+    minAABB = glm::vec3( std::numeric_limits<float>::max() );
+    maxAABB = glm::vec3(-std::numeric_limits<float>::max());
+
+    if (geom.type == CUBE || geom.type == SPHERE) {
+        glm::vec3 localMin, localMax;
+        localMin = glm::vec3(-0.5f);
+        localMax = glm::vec3(+0.5f);
+
+        glm::vec3 corners[8] = {
+            {localMin.x, localMin.y, localMin.z},
+            {localMin.x, localMin.y, localMax.z},
+            {localMin.x, localMax.y, localMin.z},
+            {localMin.x, localMax.y, localMax.z},
+            {localMax.x, localMin.y, localMin.z},
+            {localMax.x, localMin.y, localMax.z},
+            {localMax.x, localMax.y, localMin.z},
+            {localMax.x, localMax.y, localMax.z}
+        };
+
+
+        for (int i = 0; i < 8; i++) {
+            glm::vec3 worldPt = glm::vec3(geom.transform * glm::vec4(corners[i], 1.0f));
+            minAABB = glm::min(minAABB, worldPt);
+            maxAABB = glm::max(maxAABB, worldPt);
+        }
+    }
+    else if(geom.type == TRIANGLE) {
+        for(int i = 0; i < 3; i++){
+            glm::vec3 worldPt = glm::vec3(geom.transform * glm::vec4(geom.vertices[i], 1.0f));
+            minAABB = glm::min(minAABB, worldPt);
+            maxAABB = glm::max(maxAABB, worldPt);
+        }
+    }
+}
+
+#ifdef BVH_NUM
+
+int Scene::buildBVHNode(int st, int ed) {
+    BVHNode node;
+    int node_idx = bvh.size();
+    bvh.push_back(node);
+
+    // bounding box
+    node.minCorner = glm::vec3( std::numeric_limits<float>::max() );
+    node.maxCorner = glm::vec3(-std::numeric_limits<float>::max());
+
+    for(int i = st; i < ed; i++) {
+        glm::vec3 minAABB, maxAABB;
+        compute_box(geoms[i], minAABB, maxAABB);
+        node.minCorner = glm::min(node.minCorner, minAABB);
+        node.maxCorner = glm::max(node.maxCorner, maxAABB);
+    }
+
+    node.geo_st = st;
+    node.geo_ed = ed;
+
+    if(ed - st > BVH_NUM) {
+        node.isLeaf = false;
+
+        glm::vec3 diagonal = node.maxCorner - node.minCorner;
+        int axis;
+        if(diagonal[2] > diagonal[1] && diagonal[2] > diagonal[0]){
+            axis = 2;
+        }
+        else if(diagonal[1] > diagonal[0]){
+            axis = 1;
+        }
+        else {
+            axis = 0;
+        }
+
+        auto cmpFunc = [axis](const Geom& a, const Geom& b) {
+            glm::vec3 center_a = compute_center(a);
+            glm::vec3 center_b = compute_center(b);
+            return center_a[axis] < center_b[axis];
+        };
+
+        std::sort(geoms.begin() + st, geoms.begin() + ed, cmpFunc);
+
+        int mid = (st + ed) >> 1;
+
+        node.leftNode = buildBVHNode(st, mid);
+        node.rightNode = buildBVHNode(mid, ed);
+    }
+    else{
+        node.isLeaf = true;
+        node.leftNode = node.rightNode = -1;
+    }
+
+    bvh[node_idx] = node;
+    return node_idx;
+}
+
+void Scene::buildBVH() {
+    bvh.clear();
+    buildBVHNode(0, geoms.size());
+}
+
+#endif
+
+
 Scene::Scene(string filename)
 {
     cout << "Reading scene from " << filename << " ..." << endl;
@@ -192,4 +305,10 @@ void Scene::loadFromJSON(const std::string& jsonName)
     int arraylen = camera.resolution.x * camera.resolution.y;
     state.image.resize(arraylen);
     std::fill(state.image.begin(), state.image.end(), glm::vec3());
+
+    #ifdef BVH_NUM
+
+    buildBVH();
+
+    #endif
 }

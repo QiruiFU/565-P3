@@ -1,6 +1,36 @@
 #include "intersections.h"
 #include <glm/gtx/intersect.hpp>
 
+__host__ __device__ bool BVHIntersectionTest(
+    BVHNode bvh,
+    Ray r
+)
+{ 
+    float tmin = -1e38f;
+    float tmax = 1e38f;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        float invD = 1.0f / r.direction[i];
+        float t0 = (bvh.minCorner[i] - r.origin[i]) * invD;
+        float t1 = (bvh.maxCorner[i] - r.origin[i]) * invD;
+
+        if (invD < 0.0f){
+            float temp = t0;
+            t0 = t1;
+            t1 = temp;
+        }
+
+        tmin = max(tmin, t0);
+        tmax = min(tmax, t1);
+
+        if (tmin > tmax)
+            return false;
+    }
+
+    return true;
+}
+
 __host__ __device__ float boxIntersectionTest(
     Geom box,
     Ray r,
@@ -143,6 +173,7 @@ __host__ __device__ float triIntersectionTest(
         glm::vec3 e2 = triangle.vertices[2] - triangle.vertices[0];
         normal = glm::normalize(glm::cross(e1, e2));
         outside = glm::dot(r.direction, normal) < 0.0f;
+        if(!outside) normal = -normal;
         return t;
     }
     else{

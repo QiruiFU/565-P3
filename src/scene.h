@@ -7,10 +7,13 @@ class Scene
 {
 private:
     void loadFromJSON(const std::string& jsonName);
+    void buildBVH();
+    int buildBVHNode(int st, int ed);
 public:
     Scene(std::string filename);
 
     std::vector<Geom> geoms;
     std::vector<Material> materials;
+    std::vector<BVHNode> bvh;
     RenderState state;
 };
