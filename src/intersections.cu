@@ -158,25 +158,33 @@ __host__ __device__ float triIntersectionTest(
     rt.direction = rd;
 
     glm::vec3 bary;
-    bool inter_valid = glm::intersectRayTriangle(ro, rd,
-                                    triangle.vertices[0],
-                                    triangle.vertices[1],
-                                    triangle.vertices[2],
-                                    bary);
-    
-    float t = bary.z;
+    bool inter_valid = glm::intersectRayTriangle(
+        ro, rd,
+        triangle.vertices[0],
+        triangle.vertices[1],
+        triangle.vertices[2],
+        bary);
 
-    if (inter_valid)
+    if (!inter_valid)
     {
-        intersectionPoint = getPointOnRay(rt, t);
-        glm::vec3 e1 = triangle.vertices[1] - triangle.vertices[0];
-        glm::vec3 e2 = triangle.vertices[2] - triangle.vertices[0];
-        normal = glm::normalize(glm::cross(e1, e2));
-        outside = glm::dot(r.direction, normal) < 0.0f;
-        if(!outside) normal = -normal;
-        return t;
+        return -1.0f;
     }
-    else{
-        return -1.0;
+
+    float t = bary.z;
+    glm::vec3 objIntersection = getPointOnRay(rt, t);
+
+    glm::vec3 e1 = triangle.vertices[1] - triangle.vertices[0];
+    glm::vec3 e2 = triangle.vertices[2] - triangle.vertices[0];
+    glm::vec3 objNormal = glm::normalize(glm::cross(e1, e2));
+
+    intersectionPoint = multiplyMV(triangle.transform, glm::vec4(objIntersection, 1.0f));
+    normal = glm::normalize(multiplyMV(triangle.invTranspose, glm::vec4(objNormal, 0.0f)));
+
+    outside = glm::dot(r.direction, normal) < 0.0f;
+    if (!outside)
+    {
+        normal = -normal;
     }
+
+    return glm::length(r.origin - intersectionPoint);
 }
