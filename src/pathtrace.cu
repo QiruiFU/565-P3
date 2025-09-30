@@ -126,6 +126,11 @@ void pathtraceFree()
     checkCUDAError("pathtraceFree");
 }
 
+__device__ glm::vec2 SampleUniformDisk(float u, float v) {
+    float dx = sqrt(u) * cos(TWO_PI * v);
+    float dy = sqrt(u) * sin(TWO_PI * v);
+    return glm::vec2(dx, dy) * 2.0f - glm::vec2(1., 1.);
+}
 /**
 * Generate PathSegments with rays from the camera through the screen into the
 * scene, which is the first bounce of rays.
@@ -160,6 +165,14 @@ __global__ void generateRayFromCamera(Camera cam, int iter, int traceDepth, Path
             - cam.right * cam.pixelLength.x * ((float)x - (float)cam.resolution.x * 0.5f + randX)
             - cam.up * cam.pixelLength.y * ((float)y - (float)cam.resolution.y * 0.5f + randY)
         );
+        
+        #ifdef DOF
+        glm::vec2 rand_dir = cam.aperture * SampleUniformDisk(u01(rng), u01(rng));
+        segment.ray.origin = cam.position + cam.right * rand_dir.x + cam.up * rand_dir.y;
+
+        glm::vec3 focus_point = cam.position + segment.ray.direction * cam.focus_dis;
+        segment.ray.direction = glm::normalize(focus_point - segment.ray.origin);
+        #endif
 
         segment.pixelIndex = index;
         segment.remainingBounces = traceDepth;
@@ -323,10 +336,6 @@ __global__ void shadeMaterial(
                     pathSegments[idx].color = glm::vec3(0.0f, 0.0f, 0.0f);
                 }
             }
-            // If there was no intersection, color the ray black.
-            // Lots of renderers use 4 channel color, RGBA, where A = alpha, often
-            // used for opacity, in which case they can indicate "no opacity".
-            // This can be useful for post-processing and image compositing.
         }
         else {
             pathSegments[idx].color = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -352,7 +361,7 @@ struct deadLight
     __host__ __device__
     bool operator()(const PathSegment &p) const
     {
-        return (p.remainingBounces <= 0);
+        return (p.remainingBounces > 0);
     }
 };
 
@@ -458,7 +467,7 @@ void pathtrace(uchar4* pbo, int frame, int iter)
         checkCUDAError("shading");
         cudaDeviceSynchronize();
 
-        PathSegment *new_end = thrust::remove_if(
+        PathSegment *new_end = thrust::partition(
             thrust::device,
             dev_paths,
             dev_paths + num_paths,

@@ -20,6 +20,7 @@
 #define ROULETTE 0.9f
 #define COS_HEMISPHERE
 #define BVH_NUM 5 
+#define DOF
 
 class GuiDataContainer
 {
