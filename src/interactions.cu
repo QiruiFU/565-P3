@@ -72,9 +72,42 @@ __host__ __device__ void scatterRay(
     pathSegment.ray.origin = intersect;
     glm::vec3 direct;
     normal = glm::normalize(normal);
-    if(m.hasReflective > 0.0){
-        pathSegment.color *= m.color * glm::dot(glm::normalize(-pathSegment.ray.direction), normal);
+    if(m.hasReflective > 0.0) {
+        pathSegment.color *= m.color;
         direct = glm::reflect(pathSegment.ray.direction, normal);
+    }
+    else if(m.hasRefractive == 1.0) {
+        pathSegment.ray.origin += 0.0002f * glm::normalize(pathSegment.ray.direction);
+        float n1, n2;
+
+        float cos_theta = glm::dot(glm::normalize(pathSegment.ray.direction), normal);
+        pathSegment.color *= m.color;
+
+        if(cos_theta < 0.0){
+            n1 = 1.0;
+            n2 = m.indexOfRefraction;
+            cos_theta = -cos_theta;
+        }
+        else {
+            n1 = m.indexOfRefraction;
+            n2 = 1.0;
+            normal = -normal;
+        }
+
+        float F = (n1 - n2) / (n1 + n2);
+        F = F * F;
+        F = F + (1.0 - F) * powf(1.0 - cos_theta, 5.0);
+
+        thrust::uniform_real_distribution<float> u01(0, 1);
+        float judge = u01(rng);
+        if(judge > F) { // refraction
+            direct = glm::refract(glm::normalize(pathSegment.ray.direction), normal, n1 / n2);
+        }
+        if(judge <= F || glm::length(direct) < 1e-8f) { // reflect
+            direct = glm::reflect(pathSegment.ray.direction, normal);
+        }
+        // pathSegment.color *= glm::vec3(1.0, 1.0, 1.0);
+        // direct = pathSegment.ray.direction;
     }
     else{
         #ifdef COS_HEMISPHERE

@@ -79,8 +79,11 @@ __host__ __device__ float boxIntersectionTest(
             tmin_n = tmax_n;
             outside = false;
         }
-        intersectionPoint = multiplyMV(box.transform, glm::vec4(getPointOnRay(q, tmin), 1.0f));
+        intersectionPoint = multiplyMV(box.transform, glm::vec4(q.origin + q.direction * tmin, 1.0f));
         normal = glm::normalize(multiplyMV(box.invTranspose, glm::vec4(tmin_n, 0.0f)));
+        if (tmin <= 0){
+            normal = -normal;
+        }
         return glm::length(r.origin - intersectionPoint);
     }
 
@@ -131,15 +134,10 @@ __host__ __device__ float sphereIntersectionTest(
         outside = false;
     }
 
-    glm::vec3 objspaceIntersection = getPointOnRay(rt, t);
+    glm::vec3 objspaceIntersection = rt.origin + rt.direction * t;
 
     intersectionPoint = multiplyMV(sphere.transform, glm::vec4(objspaceIntersection, 1.f));
     normal = glm::normalize(multiplyMV(sphere.invTranspose, glm::vec4(objspaceIntersection, 0.f)));
-    if (!outside)
-    {
-        normal = -normal;
-    }
-
     return glm::length(r.origin - intersectionPoint);
 }
 
@@ -171,7 +169,7 @@ __host__ __device__ float triIntersectionTest(
     }
 
     float t = bary.z;
-    glm::vec3 objIntersection = getPointOnRay(rt, t);
+    glm::vec3 objIntersection = rt.origin + rt.direction * t;
 
     glm::vec3 e1 = triangle.vertices[1] - triangle.vertices[0];
     glm::vec3 e2 = triangle.vertices[2] - triangle.vertices[0];

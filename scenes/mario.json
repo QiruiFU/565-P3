@@ -37,6 +37,12 @@
             "TYPE":"Specular",
             "RGB":[0.98, 0.98, 0.98],
             "ROUGHNESS":0.0
+        },
+        "glass":
+        {
+            "TYPE":"Refraction",
+            "RGB":[0.35, 0.35, 0.85],
+            "IOR":1.3333
         }
     },
     "Camera":
@@ -44,7 +50,7 @@
         "RES":[800,800],
         "FOVY":45.0,
         "ITERATIONS":3000,
-        "DEPTH":8,
+        "DEPTH":12,
         "FILE":"cornell",
         "EYE":[0.0,5.0,7.5],
         "LOOKAT":[0.0,5.0,0.0],
@@ -105,15 +111,15 @@
         },
         {
             "TYPE":"sphere",
-            "MATERIAL":"diffuse_red",
-            "TRANS":[2.0,5.0,2],
+            "MATERIAL":"glass",
+            "TRANS":[0.0,6.5,4],
             "ROTAT":[0.0,0.0,0.0],
-            "SCALE":[1.0,2.0,1.5]
+            "SCALE":[1.0,1.0,1.0]
         },
         {
             "TYPE":"obj_file",
-            "FILE":".\\geometry\\sword.obj",
-            "MATERIAL":"specular_white",
+            "FILE":".\\geometry\\Mario.obj",
+            "MATERIAL":"diffuse_blue",
             "TRANS":[0.0,2.0,-1.0],
             "ROTAT":[0.0,20.0,0.0],
             "SCALE":[1.0,1.0,1.0]
