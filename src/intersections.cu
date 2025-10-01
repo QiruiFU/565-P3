@@ -179,10 +179,10 @@ __host__ __device__ float triIntersectionTest(
     normal = glm::normalize(multiplyMV(triangle.invTranspose, glm::vec4(objNormal, 0.0f)));
 
     outside = glm::dot(r.direction, normal) < 0.0f;
-    if (!outside)
-    {
-        normal = -normal;
-    }
+    // if (!outside)
+    // {
+    //     normal = -normal;
+    // }
 
     return glm::length(r.origin - intersectionPoint);
 }

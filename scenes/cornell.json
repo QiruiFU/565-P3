@@ -111,15 +111,15 @@
         },
         {
             "TYPE":"sphere",
-            "MATERIAL":"glass",
-            "TRANS":[-0.5,4.0,2.5],
+            "MATERIAL":"specular_white",
+            "TRANS":[-1.5,4.0,-0.5],
             "ROTAT":[0.0,0.0,0.0],
             "SCALE":[2.5,2.5,2.5]
         },
         {
             "TYPE":"sphere",
             "MATERIAL":"diffuse_red",
-            "TRANS":[-0.5,5.0,-1.5],
+            "TRANS":[1.5,5.0,1.5],
             "ROTAT":[0.0,0.0,0.0],
             "SCALE":[1.0,2.0,1.5]
         }

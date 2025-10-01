@@ -41,7 +41,7 @@
         "glass":
         {
             "TYPE":"Refraction",
-            "RGB":[0.35, 0.35, 0.85],
+            "RGB":[0.95, 0.95, 0.95],
             "IOR":1.3333
         }
     },
@@ -111,18 +111,18 @@
         },
         {
             "TYPE":"sphere",
-            "MATERIAL":"glass",
-            "TRANS":[0.0,6.5,4],
+            "MATERIAL":"diffuse_red",
+            "TRANS":[0.0,5.0,-2],
             "ROTAT":[0.0,0.0,0.0],
-            "SCALE":[1.0,1.0,1.0]
+            "SCALE":[1.5,3.0,1.0]
         },
         {
             "TYPE":"obj_file",
-            "FILE":".\\geometry\\Mario.obj",
-            "MATERIAL":"diffuse_blue",
-            "TRANS":[0.0,2.0,-1.0],
-            "ROTAT":[0.0,20.0,0.0],
-            "SCALE":[1.0,1.0,1.0]
+            "FILE":".\\geometry\\statue.obj",
+            "MATERIAL":"glass",
+            "TRANS":[0.0,5.0,2.0],
+            "ROTAT":[15.0,80.0,0.0],
+            "SCALE":[5.0,5.0,5.0]
         }
     ]
 }

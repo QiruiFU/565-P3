@@ -77,7 +77,6 @@ __host__ __device__ void scatterRay(
         direct = glm::reflect(pathSegment.ray.direction, normal);
     }
     else if(m.hasRefractive == 1.0) {
-        pathSegment.ray.origin += 0.0002f * glm::normalize(pathSegment.ray.direction);
         float n1, n2;
 
         float cos_theta = glm::dot(glm::normalize(pathSegment.ray.direction), normal);
@@ -101,6 +100,7 @@ __host__ __device__ void scatterRay(
         thrust::uniform_real_distribution<float> u01(0, 1);
         float judge = u01(rng);
         if(judge > F) { // refraction
+            pathSegment.ray.origin += 0.0002f * glm::normalize(pathSegment.ray.direction);
             direct = glm::refract(glm::normalize(pathSegment.ray.direction), normal, n1 / n2);
         }
         if(judge <= F || glm::length(direct) < 1e-8f) { // reflect
