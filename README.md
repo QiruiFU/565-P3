@@ -10,7 +10,7 @@ CUDA Path Tracer
 ## README
 
 <div align="center">
-<img src="/img/final-result.png", style="width: 60%">
+<img src="/img/final-result.png", style="width: 80%">
 </div>
 
 ### Introduction
@@ -83,14 +83,20 @@ Scene2 : 6652 triangles
 In order to handle intersections with the same material in each CUDA block, we can sort all intersections before shading. This may lead to contiguous memory visiting and increase the redering speed. However, I found that in the most scenes we have much less types of material compared with quantity of geometries, this method could make rendering slower.
 
 ### Gallery & Bloopers
-<img src="/img/cornell-sword.png" style="width: 30%">
+<div align="center">
+<img src="/img/cornell-Sword.png" style="width: 30%">
 <img src="/img/cornell-Mario.png" style="width: 30%">
 <img src="/img/cornell-refraction-statue.png" style="width: 30%">
+</div>
 
 ##### bloopers:
 
+<div align="center">
 <img src="/img/bug-inter.png" style="width: 30%">
 <img src="/img/bug-reflect.png" style="width: 30%">
 <img src="/img/bug-refraction1.png" style="width: 30%">
+</div>
+<div align="center">
 <img src="/img/bug-refraction2.png" style="width: 30%">
 <img src="/img/bug-refraction3.png" style="width: 30%">
+</div>
