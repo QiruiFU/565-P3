@@ -110,13 +110,12 @@ __host__ __device__ void scatterRay(
         // direct = pathSegment.ray.direction;
     }
     else{
+        direct = calculateRandomDirectionInHemisphere(normal, rng);
         #ifdef COS_HEMISPHERE
         pathSegment.color *= m.color;
         #else
-        pathSegment.color *= m.color * glm::dot(glm::normalize(-pathSegment.ray.direction), normal);
+        pathSegment.color *= 2.0f * m.color * glm::dot(glm::normalize(direct), normal);
         #endif
-
-        direct = calculateRandomDirectionInHemisphere(normal, rng);
     }
     pathSegment.ray.direction = glm::normalize(direct);
 }

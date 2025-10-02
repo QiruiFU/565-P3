@@ -271,6 +271,8 @@ void Scene::loadFromJSON(const std::string& jsonName)
         }
     }
 
+    printf("cnt of geometries : %d\n", geoms.size());
+
     const auto& cameraData = data["Camera"];
     Camera& camera = state.camera;
     RenderState& state = this->state;

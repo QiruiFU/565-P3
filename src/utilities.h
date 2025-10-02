@@ -17,7 +17,7 @@
 
 // #define SORT_MATERIAL
 #define ANTI_ALIAS
-#define ROULETTE 0.9f
+#define ROULETTE 0.92f
 #define COS_HEMISPHERE
 #define BVH_NUM 5 
 // #define DOF
