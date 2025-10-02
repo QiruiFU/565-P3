@@ -15,7 +15,7 @@ CUDA Path Tracer
 
 ### Introduction
 
-In this project, I implemented a path tracer, which can render scenes described in `json` file. This renderer support 4 different materials : light source, diffuse, perfect specular and refraction materials like glass. There are 3 primitive geometries we support : Sphere, cube and triangle. Based on project [tinyobj](), this renderer can convert `obj` file to triangles automatically, making it possible to render complicated scenes.
+In this project, I implemented a path tracer, which can render scenes described in `json` file. This renderer support 4 different materials : light source, diffuse, perfect specular and refraction materials like glass. There are 3 primitive geometries we support : Sphere, cube and triangle. Based on project [tinyobj](https://github.com/tinyobjloader/tinyobjloader), this renderer can convert `obj` file to triangles automatically, making it possible to render complicated scenes.
 
 In `utilities.h` file, you can turn on or off different features to test their effects.
 
@@ -34,7 +34,7 @@ We support 4 types materials including light source.
 <img src="/img/cornell-refraction-sphere.png" style="width: 50%">
 
 #### Load `obj` file into scene & BVH tree
-In the file describing scene, you can indicate the path of you obj file, then renderer will parse it automatically. This feature is based on [tinyobj](). Of course rendering thousands of triangles is really slow, we implemented BVH tree to accelerate this process. You can find the comparison of performance between with and without BVH in the next section.
+In the file describing scene, you can indicate the path of you obj file, then renderer will parse it automatically. This feature is based on [tinyobj](https://github.com/tinyobjloader/tinyobjloader). Of course rendering thousands of triangles is really slow, we implemented BVH tree to accelerate this process. You can find the comparison of performance between with and without BVH in the next section.
 
 <img src="/img/choppa.png" style="width: 50%">
 count of triangle : 130k , source : https://skfb.ly/oS8Ux
