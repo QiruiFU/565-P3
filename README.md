@@ -37,9 +37,11 @@ We support 4 types materials including light source.
 In the file describing scene, you can indicate the path of you obj file, then renderer will parse it automatically. This feature is based on [tinyobj](https://github.com/tinyobjloader/tinyobjloader). Of course rendering thousands of triangles is really slow, we implemented BVH tree to accelerate this process. You can find the comparison of performance between with and without BVH in the next section.
 
 <img src="/img/choppa.png" style="width: 50%">
+
 count of triangle : 130k , source : https://skfb.ly/oS8Ux
 
 <img src="/img/buddha.png" style="width: 50%">
+
 count of triangle : 37k , source : https://skfb.ly/QGxw
 
 #### Anti-Alias
@@ -94,9 +96,13 @@ In order to handle intersections with the same material in each CUDA block, we c
 <div align="center">
 <img src="/img/bug-inter.png" style="width: 30%">
 <img src="/img/bug-reflect.png" style="width: 30%">
-<img src="/img/bug-refraction1.png" style="width: 30%">
-</div>
-<div align="center">
 <img src="/img/bug-refraction2.png" style="width: 30%">
-<img src="/img/bug-refraction3.png" style="width: 30%">
 </div>
+
+##### 3D model sources
+* Stylized Axe : https://skfb.ly/oUXsT
+* Socrates : https://skfb.ly/o7GzI
+* American_flamingo_obj : https://skfb.ly/ozCxv
+* Doctorwho Weeping Angel : https://skfb.ly/oSMNO
+* Buster Sword : https://skfb.ly/6WON6
+* Mario : https://skfb.ly/6X8o8
