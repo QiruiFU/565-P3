@@ -10,7 +10,8 @@ CUDA Path Tracer
 ## README
 
 <div align="center">
-<img src="/img/final-result.png", style="width: 80%">
+<img src="/img/final-result1.png", style="width: 100%">
+<img src="/img/final-result2.png", style="width: 100%">
 </div>
 
 ### Introduction
@@ -62,7 +63,7 @@ By simulating behavior of a real camera, we can generate effect of Depth of File
 
 ### Performance Analysis
 #### Russian Roulette
-Each time when a ray bounces, we can use a probability `p` to determine whether to kill this ray. If we kill it, just set `remainBouncing` to `0`. If we don't kill it, to make sure the expectation don't change, we need to update the light with `color = color / (1 - p)`, where `1-p` is the probability it survives. This method may lead to higher variance, but can keep energy conservative and make rendering faster.
+Each time when a ray bounces, we can use a probability `p` to determine whether to kill this ray. If we kill it, just set `remainBounces` to `0`. If we don't kill it, to make sure the expectation don't change, we need to update the light with `color = color / (1 - p)`, where `1-p` is the probability it survives. This method may lead to higher variance, but can keep energy conservative and make rendering faster.
 
 |    trace depth  |  5     |  10        |
 |-----------------|--------|------------|

@@ -21,6 +21,7 @@
 #define COS_HEMISPHERE
 #define BVH_NUM 5 
 // #define DOF
+#define SKY
 
 class GuiDataContainer
 {

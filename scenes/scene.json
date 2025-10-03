@@ -5,7 +5,7 @@
         {
             "TYPE":"Emitting",
             "RGB":[1.0, 1.0, 1.0],
-            "EMITTANCE":6.0
+            "EMITTANCE":3.0
         },
         "diffuse_white":
         {
@@ -25,7 +25,7 @@
         "diffuse_green":
         {
             "TYPE":"Diffuse",
-            "RGB":[0.35, 0.85, 0.35]
+            "RGB":[0.25, 0.65, 0.25]
         },
         "diffuse_blue":
         {
@@ -63,7 +63,7 @@
         "ITERATIONS":6000,
         "DEPTH":10,
         "FILE":"cornell",
-        "EYE":[0.0,5.0,10],
+        "EYE":[0,2.0,10],
         "LOOKAT":[0.0,5.0,0.0],
         "UP":[0.0,1.0,0.0],
         "APERTURE":0.09,
@@ -72,81 +72,25 @@
     "Objects":
     [  
         {
-            "TYPE":"cube",
+            "TYPE":"sphere",
             "MATERIAL":"light",
-            "TRANS":[3.0,10.0,3.0],
+            "TRANS":[-3.0,10.0,10.0],
             "ROTAT":[0.0,0.0,0.0],
-            "SCALE":[3.0,0.3,3.0]
+            "SCALE":[2.0,2.0,2.0]
         },
         {
-            "TYPE":"cube",
+            "TYPE":"sphere",
             "MATERIAL":"light",
-            "TRANS":[-3.0,10.0,3.0],
+            "TRANS":[0.0,0.0,0.0],
             "ROTAT":[0.0,0.0,0.0],
-            "SCALE":[3.0,0.3,3.0]
-        },
-        {
-            "TYPE":"cube",
-            "MATERIAL":"light",
-            "TRANS":[3.0,10.0,-3.0],
-            "ROTAT":[0.0,0.0,0.0],
-            "SCALE":[3.0,0.3,3.0]
-        },
-        {
-            "TYPE":"cube",
-            "MATERIAL":"light",
-            "TRANS":[-3.0,10.0,-3.0],
-            "ROTAT":[0.0,0.0,0.0],
-            "SCALE":[3.0,0.3,3.0]
+            "SCALE":[1.0,1.0,1.0]
         },
         {
             "TYPE":"cube",
             "MATERIAL":"diffuse_white",
             "TRANS":[0.0,0.0,0.0],
             "ROTAT":[0.0,0.0,0.0],
-            "SCALE":[20.0,0.01,22.0]
-        },
-        {
-            "TYPE":"cube",
-            "MATERIAL":"diffuse_white",
-            "TRANS":[0.0,10.0,0.0],
-            "ROTAT":[0.0,0.0,90.0],
-            "SCALE":[0.01,20.0,22.0]
-        },
-        {
-            "TYPE":"cube",
-            "MATERIAL":"diffuse_yellow",
-            "TRANS":[0.0,5.0,-11.0],
-            "ROTAT":[0.0,90.0,0.0],
-            "SCALE":[0.01,10.0,20.0]
-        },
-        {
-            "TYPE":"cube",
-            "MATERIAL":"diffuse_blue",
-            "TRANS":[0.0,5.0,11.0],
-            "ROTAT":[0.0,90.0,0.0],
-            "SCALE":[0.01,10.0,20.0]
-        },
-        {
-            "TYPE":"cube",
-            "MATERIAL":"diffuse_red",
-            "TRANS":[-10.0,5.0,0.0],
-            "ROTAT":[0.0,0.0,0.0],
-            "SCALE":[0.01,10.0,22.0]
-        },
-        {
-            "TYPE":"cube",
-            "MATERIAL":"diffuse_green",
-            "TRANS":[10.0,5.0,0.0],
-            "ROTAT":[0.0,0.0,0.0],
-            "SCALE":[0.01,10.0,22.0]
-        },
-        {
-            "TYPE":"cube",
-            "MATERIAL":"diffuse_green",
-            "TRANS":[10.0,5.0,0.0],
-            "ROTAT":[0.0,0.0,0.0],
-            "SCALE":[0.01,10.0,22.0]
+            "SCALE":[40.0,0.01,40.0]
         },
         {
             "TYPE":"obj_file",

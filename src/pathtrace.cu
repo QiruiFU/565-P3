@@ -338,8 +338,17 @@ __global__ void shadeMaterial(
             }
         }
         else {
-            pathSegments[idx].color = glm::vec3(0.0f, 0.0f, 0.0f);
             pathSegments[idx].remainingBounces = 0;
+            #ifdef SKY
+            glm::vec3 dir = glm::normalize(pathSegments[idx].ray.direction);
+            float t = 0.5f * (dir[1] + 1.0f);
+            glm::vec3 groundColor = glm::vec3(1.0f, 1.0f, 1.0f);
+            glm::vec3 skyColor    = glm::vec3(0.5f, 0.7f, 1.0f);
+            glm::vec3 envColor = (1.0f - t) * groundColor + t * skyColor;
+            pathSegments[idx].color *= envColor;
+            #else
+            pathSegments[idx].color = glm::vec3(0.0f, 0.0f, 0.0f);
+            #endif
         }
     }
 }
